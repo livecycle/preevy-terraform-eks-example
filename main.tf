@@ -64,6 +64,13 @@ module "eks" {
   eks_managed_node_group_defaults = {
     ami_type = "AL2_x86_64"
 
+    iam_role_additional_policies = {
+      # policies required by the observability addon
+      # https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Observability-EKS-addon.html#install-CloudWatch-Observability-EKS-addon-workernodes
+      cloudwatch_agent_server = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      aws_xray_write_only = "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"
+    }
+
   }
 
   eks_managed_node_groups = {
