@@ -4,7 +4,7 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "il-central-1"
+  default     = "us-west-2"
 }
 
 variable "user" {
