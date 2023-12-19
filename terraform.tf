@@ -3,16 +3,16 @@
 
 terraform {
 
-  cloud {
-    workspaces {
-      name = "learn-terraform-eks"
-    }
-  }
+  # cloud {
+  #   workspaces {
+  #     name = "learn-terraform-eks"
+  #   }
+  # }
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.7.0"
+      version = "~> 5.12.0"
     }
 
     random = {
@@ -29,8 +29,18 @@ terraform {
       source  = "hashicorp/cloudinit"
       version = "~> 2.3.2"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.10"
+    }
   }
 
   required_version = "~> 1.3"
 }
 
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}

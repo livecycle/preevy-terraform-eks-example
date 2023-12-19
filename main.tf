@@ -5,7 +5,7 @@ provider "aws" {
   region = var.region
 }
 
-# Filter out local zones, which are not currently supported 
+# Filter out local zones, which are not currently supported
 # with managed node groups
 data "aws_availability_zones" "available" {
   filter {
@@ -15,7 +15,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "education-eks-${random_string.suffix.result}"
+  cluster_name = "preevy-eks-${random_string.suffix.result}"
 }
 
 resource "random_string" "suffix" {
@@ -55,7 +55,7 @@ module "eks" {
   version = "19.15.3"
 
   cluster_name    = local.cluster_name
-  cluster_version = "1.27"
+  cluster_version = "1.28"
 
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
@@ -70,29 +70,71 @@ module "eks" {
     one = {
       name = "node-group-1"
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.large"]
 
-      min_size     = 1
-      max_size     = 3
+      min_size     = 2
+      max_size     = 2
       desired_size = 2
+      capacity_type = "SPOT"
     }
 
     two = {
       name = "node-group-2"
 
-      instance_types = ["t3.small"]
+      instance_types = ["t3.large"]
 
-      min_size     = 1
-      max_size     = 2
-      desired_size = 1
+      min_size     = 0
+      max_size     = 1
+      desired_size = 0
     }
+  }
+
+  aws_auth_roles = [
+    {
+      rolearn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.sso_admin_role}"
+      username = "cluster_sso_admins"
+      groups   = ["system:masters"]
+    }
+    # {
+    #   rolearn  = "arn:aws:iam::66666666666:role/role1"
+    #   username = "role1"
+    #   groups   = ["system:masters"]
+    # },
+  ]
+
+  manage_aws_auth_configmap = true
+
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${var.user}"
+      username = var.user
+      groups   = ["system:masters"]
+    },
+    # {
+    #   userarn  = "arn:aws:iam::66666666666:user/user2"
+    #   username = "user2"
+    #   groups   = ["system:masters"]
+    # },
+  ]
+
+  tags = {
+    Environment = "dev"
+    Terraform   = "true"
   }
 }
 
 
-# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
+# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
 }
 
 module "irsa-ebs-csi" {
@@ -109,10 +151,18 @@ module "irsa-ebs-csi" {
 resource "aws_eks_addon" "ebs-csi" {
   cluster_name             = module.eks.cluster_name
   addon_name               = "aws-ebs-csi-driver"
-  addon_version            = "v1.20.0-eksbuild.1"
+  addon_version            = "v1.25.0-eksbuild.1"
   service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
   tags = {
     "eks_addon" = "ebs-csi"
     "terraform" = "true"
   }
 }
+
+resource "aws_eks_addon" "eks-amazon-cloudwatch-observability" {
+  cluster_name             = module.eks.cluster_name
+  addon_name               = "amazon-cloudwatch-observability"
+}
+
+data "aws_caller_identity" "current" {}
+

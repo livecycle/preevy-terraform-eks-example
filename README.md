@@ -1,4 +1,10 @@
-# Learn Terraform - Provision an EKS Cluster
+# Terraform configuration to provision an EKS cluster for Preevy
 
-This repo is a companion repo to the [Provision an EKS Cluster tutorial](https://developer.hashicorp.com/terraform/tutorials/kubernetes/eks), containing
-Terraform configuration files to provision an EKS cluster on AWS.
+This repo demonstrates a basic Terraform configuration which provisions an AWS EKS cluster to be used as a target runtime for [Preevy](https://preevy.dev) environments.
+
+Forked from https://github.com/hashicorp/learn-terraform-provision-eks-cluster.
+
+## Changes from the base repo:
+
+- Added role maps to allow accessing the cluster
+- Use spot instances

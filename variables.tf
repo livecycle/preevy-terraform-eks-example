@@ -4,5 +4,15 @@
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-2"
+  default     = "il-central-1"
+}
+
+variable "user" {
+  description = "AWS username to set as EKS admin"
+  type        = string
+}
+
+variable "sso_admin_role" {
+  description = "AWS rolename for SSO users"
+  type = string
 }
