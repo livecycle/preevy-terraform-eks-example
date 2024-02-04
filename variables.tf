@@ -6,13 +6,3 @@ variable "region" {
   type        = string
   default     = "us-west-2"
 }
-
-variable "user" {
-  description = "AWS username to set as EKS admin"
-  type        = string
-}
-
-variable "sso_admin_role" {
-  description = "AWS rolename for SSO users"
-  type = string
-}
