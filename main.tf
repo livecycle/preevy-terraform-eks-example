@@ -310,6 +310,9 @@ resource "kubectl_manifest" "karpenter_node_pool" {
       name: default
     spec:
       template:
+        metadata:
+          labels:
+            deployed-by: karpenter
         spec:
           nodeClassRef:
             name: default
