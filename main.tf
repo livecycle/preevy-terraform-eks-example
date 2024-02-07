@@ -332,6 +332,9 @@ resource "kubectl_manifest" "karpenter_node_pool" {
             - key: "karpenter.sh/capacity-type"
               operator: In
               values: ["spot", "on-demand"]
+            - key: "kubernetes.io/arch"
+              operator: In
+              values: ["amd64"]
       limits:
         cpu: 1000
       disruption:
